@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Login / Signup</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 2rem; background: #f9f9f9; }
+    h1 { color: #333; }
+    .box { border: 1px solid #ccc; background: #fff; padding: 1rem; margin-bottom: 1rem; border-radius: 6px; }
+    input { margin: 0.5rem 0; padding: 0.5rem; width: 100%; }
+    button { padding: 0.5rem 1rem; margin-top: 0.5rem; cursor: pointer; }
+    pre { background: #eee; padding: 0.5rem; border-radius: 4px; }
+  </style>
+</head>
+<body>
+  <h1>Website Scanner Auth</h1>
+
+  <div class="box">
+    <h2>Signup</h2>
+    <input id="su_username" placeholder="Username">
+    <input id="su_email" placeholder="Email">
+    <input id="su_password" type="password" placeholder="Password">
+    <button onclick="signup()">Signup</button>
+    <pre id="signup_result"></pre>
+  </div>
+
+  <div class="box">
+    <h2>Login</h2>
+    <input id="li_username" placeholder="Username">
+    <input id="li_password" type="password" placeholder="Password">
+    <button onclick="login()">Login</button>
+    <pre id="login_result"></pre>
+  </div>
+
+  <script>
+    async function signup() {
+      const res = await fetch("http://127.0.0.1:8000/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          username: document.getElementById("su_username").value,
+          email: document.getElementById("su_email").value,
+          password: document.getElementById("su_password").value
+        })
+      });
+      document.getElementById("signup_result").textContent = await res.text();
+    }
+
+    async function login() {
+      const res = await fetch("http://127.0.0.1:8000/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+        username: document.getElementById("li_username").value,
+        password: document.getElementById("li_password").value
+        })
+      });
+      const data = await res.json();
+      if (data.access_token) {
+        localStorage.setItem("token", data.access_token);
+        document.getElementById("login_result").textContent = "Logged in! Token saved.";
+        window.location.href = "dashboard.html"; // redirect to dashboard
+      } else {
+        document.getElementById("login_result").textContent = JSON.stringify(data);
+      }
+    }
+  </script>
+</body>
+</html>

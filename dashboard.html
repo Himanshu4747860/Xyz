@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Internet Control System</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=JetBrains+Mono&display=swap" rel="stylesheet">
+  <style>
+    body {
+      background: #0d0d0d;
+      color: #e0e0e0;
+      font-family: 'Inter', sans-serif;
+      margin: 0;
+      padding: 0;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      height: 100vh;
+    }
+    .top-bar {
+      background: #111;
+      padding: 10px 20px;
+      display: flex;
+      justify-content: space-between;
+      font-weight: 600;
+      border-bottom: 2px solid #222;
+    }
+    .main-layout {
+      display: grid;
+      grid-template-columns: 250px 1fr;
+      grid-template-rows: 1fr 200px;
+      grid-template-areas:
+        "left main"
+        "alerts actions";
+      gap: 10px;
+      padding: 10px;
+    }
+    .left-panel {
+      grid-area: left;
+      background: #1a1a1a;
+      padding: 15px;
+      border-radius: 6px;
+    }
+    .main-panel {
+      grid-area: main;
+      background: #1a1a1a;
+      padding: 20px;
+      border-radius: 6px;
+      text-align: center;
+    }
+    .alerts-stream {
+      grid-area: alerts;
+      background: #1a1a1a;
+      padding: 15px;
+      border-radius: 6px;
+      overflow-y: auto;
+    }
+    .actions-panel {
+      grid-area: actions;
+      background: #1a1a1a;
+      padding: 15px;
+      border-radius: 6px;
+      overflow-y: auto;
+    }
+    .health-orb {
+      width: 200px;
+      height: 200px;
+      border-radius: 50%;
+      background: radial-gradient(circle, cyan, #0d0d0d);
+      animation: pulse 2s infinite;
+      margin: 20px auto;
+    }
+    @keyframes pulse {
+      0% { box-shadow: 0 0 10px cyan; }
+      50% { box-shadow: 0 0 30px cyan; }
+      100% { box-shadow: 0 0 10px cyan; }
+    }
+    .verdict-banner {
+      font-size: 1.5em;
+      margin-top: 20px;
+    }
+    .timeline {
+      display: flex;
+      justify-content: center;
+      margin-top: 30px;
+      gap: 20px;
+    }
+    .event {
+      background: #222;
+      padding: 10px 15px;
+      border-radius: 6px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .alert, .action {
+      background: #222;
+      padding: 10px;
+      margin-bottom: 10px;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+<div class="top-bar">
+  <span class="domain" id="domain-name">Loading...</span>
+  <span class="status">-</span>
+  <span class="time">-</span>
+  <select id="domain-select"></select>
+</div>
+  <div class="top-bar">
+    <span class="domain">example.com</span>
+    <span class="status">STABLE</span>
+    <span class="time">Last scan: 2m ago</span>
+  </div>
+
+  <div class="main-layout">
+    <!-- Left Control Panel -->
+    <div class="left-panel">
+      <h3>Controls</h3>
+      <button>Trigger Scan</button><br><br>
+      <button>View History</button><br><br>
+      <button>Settings</button>
+    </div>
+
+    <!-- Main Intelligence Panel -->
+    <div class="main-panel">
+      <div class="health-orb"></div>
+      <div class="verdict-banner">
+        <h1>STABLE</h1>
+        <p>Confidence: 95% | Next risk in 14 days</p>
+      </div>
+      <div class="timeline">
+        <div class="event">Header changed</div>
+        <div class="event">Performance drop</div>
+        <div class="event">SEO risk rising</div>
+      </div>
+    </div>
+
+    <!-- Alerts Stream -->
+    <div class="alerts-stream">
+      <h3>Alerts</h3>
+      <div class="alert">⚠️ SSL certificate expiring soon</div>
+      <div class="alert">⚠️ DNS change detected</div>
+    </div>
+
+    <!-- Actions Panel -->
+    <div class="actions-panel">
+      <h3>Decisions</h3>
+      <div class="action">🔴 Fix missing CSP header<br>Impact: HIGH | Urgency: MEDIUM</div>
+      <div class="action">🟠 Optimize image compression<br>Impact: MEDIUM | Urgency: LOW</div>
+    </div>
+  </div>
+<script>
+async function loadDashboard(domain) {
+  try {
+    // Fetch overview
+    const overview = await fetch(`/overview/${domain}`).then(r => r.json());
+    document.querySelector('.domain').textContent = overview.domain;
+    document.querySelector('.status').textContent = overview.verdict;
+    document.querySelector('.time').textContent = "Last scan: " + overview.created_at;
+    document.querySelector('.verdict-banner h1').textContent = overview.verdict;
+    document.querySelector('.verdict-banner p').textContent =
+      `Confidence: ${overview.trust_score}% | Severity: ${overview.severity}`;
+
+    // Orb color based on severity
+    const orb = document.querySelector('.health-orb');
+    if (overview.severity === "low") orb.style.background = "radial-gradient(circle, cyan, #0d0d0d)";
+    if (overview.severity === "medium") orb.style.background = "radial-gradient(circle, amber, #0d0d0d)";
+    if (overview.severity === "high") orb.style.background = "radial-gradient(circle, red, #0d0d0d)";
+
+    // Fetch timeline
+    const timeline = await fetch(`/timeline/${domain}`).then(r => r.json());
+    const timelineDiv = document.querySelector('.timeline');
+    timelineDiv.innerHTML = "";
+    timeline.forEach(ev => {
+      const div = document.createElement('div');
+      div.className = "event";
+      div.textContent = `${ev.change} (${ev.severity})`;
+      timelineDiv.appendChild(div);
+    });
+
+    // Fetch alerts
+    const alerts = await fetch(`/risks/${domain}`).then(r => r.json());
+    const alertsDiv = document.querySelector('.alerts-stream');
+    alertsDiv.innerHTML = "<h3>Alerts</h3>";
+    alerts.forEach(a => {
+      const div = document.createElement('div');
+      div.className = "alert";
+      div.textContent = `⚠️ ${a.parameter}: ${a.risk} (${a.severity})`;
+      alertsDiv.appendChild(div);
+    });
+
+    // Fetch actions
+    const actions = await fetch(`/actions/${domain}`).then(r => r.json());
+    const actionsDiv = document.querySelector('.actions-panel');
+    actionsDiv.innerHTML = "<h3>Decisions</h3>";
+    actions.forEach(act => {
+      const div = document.createElement('div');
+      div.className = "action";
+      div.innerHTML = `${act.issue}<br>Impact: ${act.risk} | Status: ${act.status}`;
+      actionsDiv.appendChild(div);
+    });
+
+  } catch (err) {
+    console.error("Error loading dashboard:", err);
+  }
+}
+
+// Load dashboard for example.com
+loadDashboard("example.com");
+</script>
+</body>
+</html>

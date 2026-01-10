@@ -2,209 +2,618 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Internet Control System</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=JetBrains+Mono&display=swap" rel="stylesheet">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Internet Intelligence & Decision Platform</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono&display=swap" rel="stylesheet">
   <style>
-    body {
-      background: #0d0d0d;
-      color: #e0e0e0;
-      font-family: 'Inter', sans-serif;
+    :root {
+      --bg-primary: #0d0d0d;
+      --bg-secondary: #161616;
+      --bg-tertiary: #1e1e1e;
+      --border-color: #262626;
+      --text-primary: #e0e0e0;
+      --text-secondary: #a0a0a0;
+      --accent-blue: #00e5ff;
+      --accent-amber: #ffab00;
+      --accent-red: #ff1744;
+      --accent-green: #00e676;
+      --sidebar-width: 240px;
+      --topbar-height: 60px;
+    }
+
+    * {
+      box-sizing: border-box;
       margin: 0;
       padding: 0;
-      display: grid;
-      grid-template-rows: auto 1fr auto;
+    }
+
+    body {
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      font-family: 'Inter', 'IBM Plex Sans', sans-serif;
       height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
     }
+
+    /* Global Top Bar */
     .top-bar {
-      background: #111;
-      padding: 10px 20px;
+      height: var(--topbar-height);
+      background: var(--bg-secondary);
+      border-bottom: 1px solid var(--border-color);
       display: flex;
-      justify-content: space-between;
-      font-weight: 600;
-      border-bottom: 2px solid #222;
+      align-items: center;
+      padding: 0 24px;
+      z-index: 100;
+      flex-shrink: 0;
     }
-    .main-layout {
-      display: grid;
-      grid-template-columns: 250px 1fr;
-      grid-template-rows: 1fr 200px;
-      grid-template-areas:
-        "left main"
-        "alerts actions";
-      gap: 10px;
-      padding: 10px;
-    }
-    .left-panel {
-      grid-area: left;
-      background: #1a1a1a;
-      padding: 15px;
-      border-radius: 6px;
-    }
-    .main-panel {
-      grid-area: main;
-      background: #1a1a1a;
-      padding: 20px;
-      border-radius: 6px;
-      text-align: center;
-    }
-    .alerts-stream {
-      grid-area: alerts;
-      background: #1a1a1a;
-      padding: 15px;
-      border-radius: 6px;
-      overflow-y: auto;
-    }
-    .actions-panel {
-      grid-area: actions;
-      background: #1a1a1a;
-      padding: 15px;
-      border-radius: 6px;
-      overflow-y: auto;
-    }
-    .health-orb {
-      width: 200px;
-      height: 200px;
-      border-radius: 50%;
-      background: radial-gradient(circle, cyan, #0d0d0d);
-      animation: pulse 2s infinite;
-      margin: 20px auto;
-    }
-    @keyframes pulse {
-      0% { box-shadow: 0 0 10px cyan; }
-      50% { box-shadow: 0 0 30px cyan; }
-      100% { box-shadow: 0 0 10px cyan; }
-    }
-    .verdict-banner {
-      font-size: 1.5em;
-      margin-top: 20px;
-    }
-    .timeline {
+
+    .logo {
+      font-weight: 700;
+      font-size: 18px;
+      letter-spacing: -0.5px;
+      color: var(--text-primary);
       display: flex;
-      justify-content: center;
-      margin-top: 30px;
-      gap: 20px;
+      align-items: center;
+      gap: 8px;
+      margin-right: 48px;
     }
-    .event {
-      background: #222;
-      padding: 10px 15px;
-      border-radius: 6px;
-      font-family: 'JetBrains Mono', monospace;
-    }
-    .alert, .action {
-      background: #222;
-      padding: 10px;
-      margin-bottom: 10px;
+
+    .logo-icon {
+      width: 24px;
+      height: 24px;
+      background: var(--accent-blue);
       border-radius: 4px;
     }
+
+    .global-search {
+      flex: 1;
+      max-width: 600px;
+      position: relative;
+    }
+
+    .global-search input {
+      width: 100%;
+      background: var(--bg-primary);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 8px 12px 8px 36px;
+      color: var(--text-primary);
+      font-family: inherit;
+      font-size: 14px;
+    }
+
+    .global-search::before {
+      content: "🔍";
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 14px;
+      opacity: 0.5;
+    }
+
+    .top-bar-actions {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      margin-left: auto;
+    }
+
+    .notification-icon { font-size: 18px; cursor: pointer; opacity: 0.7; }
+    .user-profile { width: 32px; height: 32px; background: #333; border-radius: 50%; cursor: pointer; }
+
+    /* Layout Container */
+    .app-container {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    /* Left Sidebar */
+    .sidebar {
+      width: var(--sidebar-width);
+      background: var(--bg-secondary);
+      border-right: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      padding: 24px 0;
+      flex-shrink: 0;
+    }
+
+    .nav-item {
+      padding: 10px 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.2s;
+      cursor: pointer;
+    }
+
+    .nav-item:hover {
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text-primary);
+    }
+
+    .nav-item.active {
+      color: var(--accent-blue);
+      background: rgba(0, 229, 255, 0.05);
+      border-right: 2px solid var(--accent-blue);
+    }
+
+    /* Main Content Area */
+    .main-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 32px 48px;
+      display: flex;
+      flex-direction: column;
+      gap: 32px;
+    }
+
+    /* Website Header */
+    .website-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+    }
+
+    .website-info h1 {
+      font-size: 24px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .status-badge {
+      font-size: 12px;
+      padding: 2px 8px;
+      border-radius: 12px;
+      text-transform: uppercase;
+      font-weight: 700;
+    }
+
+    .status-safe { background: rgba(0, 230, 118, 0.1); color: var(--accent-green); border: 1px solid var(--accent-green); }
+    .status-warning { background: rgba(255, 171, 0, 0.1); color: var(--accent-amber); border: 1px solid var(--accent-amber); }
+    .status-critical { background: rgba(255, 23, 68, 0.1); color: var(--accent-red); border: 1px solid var(--accent-red); }
+
+    .last-scan {
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    /* Tabs */
+    .tabs {
+      display: flex;
+      gap: 24px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .tab {
+      padding: 12px 4px;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      cursor: pointer;
+      position: relative;
+    }
+
+    .tab.active {
+      color: var(--text-primary);
+    }
+
+    .tab.active::after {
+      content: "";
+      position: absolute;
+      bottom: -1px;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: var(--accent-blue);
+    }
+
+    /* Dashboard Grid */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 1fr 350px;
+      gap: 32px;
+    }
+
+    .card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 24px;
+    }
+
+    .card-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-bottom: 20px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* Health Score */
+    .health-section {
+      display: flex;
+      align-items: center;
+      gap: 48px;
+    }
+
+    .health-score-container {
+      position: relative;
+      width: 150px;
+      height: 150px;
+    }
+
+    .health-orb {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      background: radial-gradient(circle, var(--accent-blue), transparent);
+      opacity: 0.2;
+      position: absolute;
+      animation: pulse 3s infinite ease-in-out;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); opacity: 0.2; }
+      50% { transform: scale(1.1); opacity: 0.4; }
+    }
+
+    .health-value {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 48px;
+      font-weight: 700;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .verdict-text {
+      flex: 1;
+    }
+
+    .verdict-label {
+      font-size: 32px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .verdict-description {
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+
+    /* Lists */
+    .list-item {
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .list-item:last-child { border-bottom: none; }
+
+    .item-main { display: flex; flex-direction: column; gap: 4px; }
+    .item-title { font-size: 14px; font-weight: 500; }
+    .item-meta { font-size: 12px; color: var(--text-secondary); }
+
+    .severity-tag {
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .sev-high { background: rgba(255, 23, 68, 0.1); color: var(--accent-red); }
+    .sev-medium { background: rgba(255, 171, 0, 0.1); color: var(--accent-amber); }
+    .sev-low { background: rgba(0, 229, 255, 0.1); color: var(--accent-blue); }
+
+    /* Decisions */
+    .decision-card {
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 16px;
+      margin-bottom: 12px;
+      transition: transform 0.2s;
+      cursor: pointer;
+    }
+
+    .decision-card:hover {
+      transform: translateX(4px);
+      border-color: var(--accent-blue);
+    }
+
+    .decision-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+
+    .decision-title { font-size: 14px; font-weight: 600; }
+    .decision-impact { font-size: 11px; color: var(--accent-blue); font-weight: 700; }
+
+    /* Hidden sections */
+    .view-section { display: none; }
+    .view-section.active { display: block; }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #444; }
   </style>
 </head>
 <body>
-<div class="top-bar">
-  <span class="domain" id="domain-name">Loading...</span>
-  <span class="status">-</span>
-  <span class="time">-</span>
-  <select id="domain-select"></select>
-</div>
-  <div class="top-bar">
-    <span class="domain">example.com</span>
-    <span class="status">STABLE</span>
-    <span class="time">Last scan: 2m ago</span>
+
+  <header class="top-bar">
+    <div class="logo">
+      <div class="logo-icon"></div>
+      INTELLIGENCE
+    </div>
+    <div class="global-search">
+      <input type="text" id="domain-input" placeholder="Search domain (e.g. example.com)" value="example.com">
+    </div>
+    <div class="top-bar-actions">
+      <div class="notification-icon">🔔</div>
+      <div class="user-profile"></div>
+    </div>
+  </header>
+
+  <div class="app-container">
+    <aside class="sidebar">
+      <div class="nav-item active" onclick="switchTab('overview')">
+        <span>🏠</span> Overview
+      </div>
+      <div class="nav-item" onclick="switchTab('risks')">
+        <span>⚠️</span> Risks
+      </div>
+      <div class="nav-item" onclick="switchTab('decisions')">
+        <span>⚡</span> Decisions
+      </div>
+      <div class="nav-item" onclick="switchTab('timeline')">
+        <span>📅</span> Timeline
+      </div>
+      <div class="nav-item" onclick="switchTab('intelligence')">
+        <span>🧠</span> Intelligence
+      </div>
+      <div class="nav-item" onclick="switchTab('settings')">
+        <span>⚙️</span> Settings
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <div class="website-header">
+        <div class="website-info">
+          <h1 id="display-domain">example.com <span id="status-badge" class="status-badge status-safe">Safe</span></h1>
+          <div class="last-scan" id="last-scan-time">Last scan: --</div>
+        </div>
+        <button style="background: var(--accent-blue); color: black; border: none; padding: 8px 16px; border-radius: 4px; font-weight: 600; cursor: pointer;" onclick="triggerScan()">Run Scan</button>
+      </div>
+
+      <nav class="tabs">
+        <div class="tab active" onclick="switchTab('overview')">Overview</div>
+        <div class="tab" onclick="switchTab('risks')">Risks</div>
+        <div class="tab" onclick="switchTab('decisions')">Decisions</div>
+        <div class="tab" onclick="switchTab('timeline')">Timeline</div>
+        <div class="tab" onclick="switchTab('intelligence')">Intelligence</div>
+      </nav>
+
+      <!-- Overview Section -->
+      <div id="overview-section" class="view-section active">
+        <div class="dashboard-grid">
+          <div class="left-col">
+            <div class="card" style="margin-bottom: 32px;">
+              <div class="card-title">System Health</div>
+              <div class="health-section">
+                <div class="health-score-container">
+                  <div class="health-orb" id="health-orb"></div>
+                  <div class="health-value" id="health-score">--</div>
+                </div>
+                <div class="verdict-text">
+                  <div class="verdict-label" id="verdict-label">Analyzing...</div>
+                  <div class="verdict-description" id="verdict-desc">
+                    The system is currently evaluating the security posture and operational integrity of this domain.
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-title">Recent Events</div>
+              <div id="recent-events-list">
+                <!-- Events will be injected here -->
+              </div>
+            </div>
+          </div>
+
+          <div class="right-col">
+            <div class="card" style="margin-bottom: 32px;">
+              <div class="card-title">Active Decisions</div>
+              <div id="active-decisions-list">
+                <!-- Decisions will be injected here -->
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-title">Risk Distribution</div>
+              <div style="height: 200px; display: flex; align-items: center; justify-content: center; color: var(--text-secondary); font-size: 12px;">
+                [ Risk Distribution Chart Placeholder ]
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Risks Section -->
+      <div id="risks-section" class="view-section">
+        <div class="card">
+          <div class="card-title">Identified Risks</div>
+          <div id="full-risks-list">
+            <!-- Full risks will be injected here -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Decisions Section -->
+      <div id="decisions-section" class="view-section">
+        <div class="card">
+          <div class="card-title">Required Actions</div>
+          <div id="full-decisions-list">
+            <!-- Full decisions will be injected here -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Timeline Section -->
+      <div id="timeline-section" class="view-section">
+        <div class="card">
+          <div class="card-title">Event Timeline</div>
+          <div id="full-timeline-list">
+            <!-- Full timeline will be injected here -->
+          </div>
+        </div>
+      </div>
+
+    </main>
   </div>
 
-  <div class="main-layout">
-    <!-- Left Control Panel -->
-    <div class="left-panel">
-      <h3>Controls</h3>
-      <button>Trigger Scan</button><br><br>
-      <button>View History</button><br><br>
-      <button>Settings</button>
-    </div>
+  <script>
+    let currentDomain = "example.com";
 
-    <!-- Main Intelligence Panel -->
-    <div class="main-panel">
-      <div class="health-orb"></div>
-      <div class="verdict-banner">
-        <h1>STABLE</h1>
-        <p>Confidence: 95% | Next risk in 14 days</p>
-      </div>
-      <div class="timeline">
-        <div class="event">Header changed</div>
-        <div class="event">Performance drop</div>
-        <div class="event">SEO risk rising</div>
-      </div>
-    </div>
+    async function fetchData(endpoint) {
+      try {
+        const response = await fetch(`/${endpoint}/${currentDomain}`);
+        return await response.json();
+      } catch (e) {
+        console.error(`Error fetching ${endpoint}:`, e);
+        return null;
+      }
+    }
 
-    <!-- Alerts Stream -->
-    <div class="alerts-stream">
-      <h3>Alerts</h3>
-      <div class="alert">⚠️ SSL certificate expiring soon</div>
-      <div class="alert">⚠️ DNS change detected</div>
-    </div>
+    function switchTab(tabName) {
+      // Update UI tabs
+      document.querySelectorAll('.tab').forEach(t => {
+        t.classList.toggle('active', t.textContent.toLowerCase() === tabName);
+      });
+      document.querySelectorAll('.nav-item').forEach(t => {
+        t.classList.toggle('active', t.textContent.toLowerCase().includes(tabName));
+      });
 
-    <!-- Actions Panel -->
-    <div class="actions-panel">
-      <h3>Decisions</h3>
-      <div class="action">🔴 Fix missing CSP header<br>Impact: HIGH | Urgency: MEDIUM</div>
-      <div class="action">🟠 Optimize image compression<br>Impact: MEDIUM | Urgency: LOW</div>
-    </div>
-  </div>
-<script>
-async function loadDashboard(domain) {
-  try {
-    // Fetch overview
-    const overview = await fetch(`/overview/${domain}`).then(r => r.json());
-    document.querySelector('.domain').textContent = overview.domain;
-    document.querySelector('.status').textContent = overview.verdict;
-    document.querySelector('.time').textContent = "Last scan: " + overview.created_at;
-    document.querySelector('.verdict-banner h1').textContent = overview.verdict;
-    document.querySelector('.verdict-banner p').textContent =
-      `Confidence: ${overview.trust_score}% | Severity: ${overview.severity}`;
+      // Update sections
+      document.querySelectorAll('.view-section').forEach(s => {
+        s.classList.toggle('active', s.id === `${tabName}-section`);
+      });
+    }
 
-    // Orb color based on severity
-    const orb = document.querySelector('.health-orb');
-    if (overview.severity === "low") orb.style.background = "radial-gradient(circle, cyan, #0d0d0d)";
-    if (overview.severity === "medium") orb.style.background = "radial-gradient(circle, amber, #0d0d0d)";
-    if (overview.severity === "high") orb.style.background = "radial-gradient(circle, red, #0d0d0d)";
+    async function loadDashboard() {
+      const domainInput = document.getElementById('domain-input');
+      currentDomain = domainInput.value || "example.com";
+      document.getElementById('display-domain').childNodes[0].textContent = currentDomain + " ";
 
-    // Fetch timeline
-    const timeline = await fetch(`/timeline/${domain}`).then(r => r.json());
-    const timelineDiv = document.querySelector('.timeline');
-    timelineDiv.innerHTML = "";
-    timeline.forEach(ev => {
-      const div = document.createElement('div');
-      div.className = "event";
-      div.textContent = `${ev.change} (${ev.severity})`;
-      timelineDiv.appendChild(div);
+      const overview = await fetchData('overview');
+      if (overview && !overview.error) {
+        document.getElementById('health-score').textContent = overview.trust_score;
+        document.getElementById('verdict-label').textContent = overview.verdict;
+        document.getElementById('last-scan-time').textContent = `Last scan: ${new Date(overview.last_scan).toLocaleString()}`;
+        
+        const badge = document.getElementById('status-badge');
+        badge.textContent = overview.verdict;
+        badge.className = 'status-badge ' + (overview.severity === 'high' ? 'status-critical' : (overview.severity === 'medium' ? 'status-warning' : 'status-safe'));
+        
+        const orb = document.getElementById('health-orb');
+        const color = overview.severity === 'high' ? 'var(--accent-red)' : (overview.severity === 'medium' ? 'var(--accent-amber)' : 'var(--accent-blue)');
+        orb.style.background = `radial-gradient(circle, ${color}, transparent)`;
+      }
+
+      // Load Risks
+      const risks = await fetchData('risks');
+      const recentEventsList = document.getElementById('recent-events-list');
+      const fullRisksList = document.getElementById('full-risks-list');
+      if (risks) {
+        fullRisksList.innerHTML = risks.map(r => `
+          <div class="list-item">
+            <div class="item-main">
+              <div class="item-title">${r.parameter}</div>
+              <div class="item-meta">${r.risk}</div>
+            </div>
+            <span class="severity-tag sev-${r.severity}">${r.severity}</span>
+          </div>
+        `).join('');
+      }
+
+      // Load Timeline
+      const timeline = await fetchData('timeline');
+      const fullTimelineList = document.getElementById('full-timeline-list');
+      if (timeline) {
+        const timelineHtml = timeline.map(t => `
+          <div class="list-item">
+            <div class="item-main">
+              <div class="item-title">${t.change}</div>
+              <div class="item-meta">${new Date(t.time).toLocaleString()}</div>
+            </div>
+            <span class="severity-tag sev-${t.severity}">${t.severity}</span>
+          </div>
+        `).join('');
+        fullTimelineList.innerHTML = timelineHtml;
+        recentEventsList.innerHTML = timeline.slice(0, 5).map(t => `
+          <div class="list-item">
+            <div class="item-main">
+              <div class="item-title">${t.change}</div>
+              <div class="item-meta">${new Date(t.time).toLocaleTimeString()}</div>
+            </div>
+          </div>
+        `).join('');
+      }
+
+      // Load Decisions
+      const actions = await fetchData('actions');
+      const activeDecisionsList = document.getElementById('active-decisions-list');
+      const fullDecisionsList = document.getElementById('full-decisions-list');
+      if (actions) {
+        const actionsHtml = actions.map(a => `
+          <div class="decision-card">
+            <div class="decision-header">
+              <div class="decision-title">${a.issue}</div>
+              <div class="decision-impact">${a.risk} IMPACT</div>
+            </div>
+            <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 8px;">Action: ${a.action}</div>
+            <div style="font-size: 11px; color: var(--accent-blue); font-weight: 600;">STATUS: ${a.status}</div>
+          </div>
+        `).join('');
+        fullDecisionsList.innerHTML = actionsHtml;
+        activeDecisionsList.innerHTML = actionsHtml;
+      }
+    }
+
+    async function triggerScan() {
+      const domain = document.getElementById('domain-input').value;
+      // In a real app, we'd call the register-domain endpoint
+      alert(`Triggering scan for ${domain}...`);
+      await fetch(`/register-domain?domain=${domain}&user_id=1`, { method: 'POST' });
+      setTimeout(loadDashboard, 2000);
+    }
+
+    document.getElementById('domain-input').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') loadDashboard();
     });
 
-    // Fetch alerts
-    const alerts = await fetch(`/risks/${domain}`).then(r => r.json());
-    const alertsDiv = document.querySelector('.alerts-stream');
-    alertsDiv.innerHTML = "<h3>Alerts</h3>";
-    alerts.forEach(a => {
-      const div = document.createElement('div');
-      div.className = "alert";
-      div.textContent = `⚠️ ${a.parameter}: ${a.risk} (${a.severity})`;
-      alertsDiv.appendChild(div);
-    });
-
-    // Fetch actions
-    const actions = await fetch(`/actions/${domain}`).then(r => r.json());
-    const actionsDiv = document.querySelector('.actions-panel');
-    actionsDiv.innerHTML = "<h3>Decisions</h3>";
-    actions.forEach(act => {
-      const div = document.createElement('div');
-      div.className = "action";
-      div.innerHTML = `${act.issue}<br>Impact: ${act.risk} | Status: ${act.status}`;
-      actionsDiv.appendChild(div);
-    });
-
-  } catch (err) {
-    console.error("Error loading dashboard:", err);
-  }
-}
-
-// Load dashboard for example.com
-loadDashboard("example.com");
-</script>
+    // Initial load
+    loadDashboard();
+  </script>
 </body>
 </html>

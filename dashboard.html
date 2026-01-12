@@ -98,11 +98,25 @@
       gap: 20px;
     }
 
-    .alert-dots { display: flex; gap: 6px; }
-    .dot { width: 8px; height: 8px; border-radius: 50%; }
-    .dot.red { background: var(--accent-red); box-shadow: 0 0 8px var(--accent-red); }
-    .dot.amber { background: var(--accent-amber); }
-    .dot.green { background: var(--accent-green); }
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 14px;
+      color: var(--text-secondary);
+    }
+
+    .logout-btn {
+      background: transparent;
+      border: 1px solid var(--border-color);
+      color: var(--text-secondary);
+      padding: 4px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+    }
+
+    .logout-btn:hover { border-color: var(--accent-red); color: var(--accent-red); }
 
     /* Layout Container */
     .app-container { display: flex; flex: 1; overflow: hidden; }
@@ -146,18 +160,10 @@
       overflow: hidden;
     }
 
-    .status-panel::before {
-      content: "";
-      position: absolute;
-      top: 0; right: 0;
-      width: 300px; height: 300px;
-      background: radial-gradient(circle, rgba(255, 23, 68, 0.05), transparent);
-      pointer-events: none;
-    }
-
     .status-header { font-size: 14px; font-weight: 700; color: var(--text-secondary); letter-spacing: 2px; margin-bottom: 16px; }
     .status-verdict { font-size: 64px; font-weight: 800; margin-bottom: 24px; letter-spacing: -2px; }
     .status-verdict.losing { color: var(--accent-red); }
+    .status-verdict.stable { color: var(--accent-green); }
 
     .status-summary { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; }
     .summary-item { display: flex; flex-direction: column; gap: 8px; }
@@ -221,6 +227,12 @@
       font-size: 13px; cursor: pointer;
     }
 
+    .add-domain-btn {
+      background: var(--accent-blue); color: black; border: none;
+      padding: 8px 16px; border-radius: 6px; font-weight: 700;
+      font-size: 13px; cursor: pointer; margin-left: 12px;
+    }
+
     /* Hidden Sections */
     .view-section { display: none; }
     .view-section.active { display: flex; flex-direction: column; gap: 40px; }
@@ -237,18 +249,19 @@
       INTELLIGENCE
     </div>
     <select class="site-selector" id="domain-select" onchange="loadDashboard()">
-      <option value="example.com">example.com</option>
+      <!-- Populated by JS -->
     </select>
-    <div class="global-health">
+    <button class="add-domain-btn" onclick="registerNewDomain()">+ Monitor New Site</button>
+    
+    <div class="global-health" style="margin-left: 24px;">
       HEALTH SCORE <span class="health-score-pill" id="global-health-score">--</span>
     </div>
+    
     <div class="top-bar-actions">
-      <div class="alert-dots">
-        <div class="dot red"></div>
-        <div class="dot amber"></div>
-        <div class="dot green"></div>
+      <div class="user-info">
+        <span id="user-display-name">User</span>
+        <button class="logout-btn" onclick="logout()">Logout</button>
       </div>
-      <div style="width: 32px; height: 32px; background: #333; border-radius: 50%;"></div>
     </div>
   </header>
 
@@ -271,16 +284,16 @@
       <div id="dashboard-view" class="view-section active">
         <section class="status-panel">
           <div class="status-header">YOUR WEBSITE IS:</div>
-          <div class="status-verdict losing" id="main-verdict">LOSING</div>
+          <div class="status-verdict" id="main-verdict">ANALYZING...</div>
           
           <div class="status-summary">
             <div class="summary-item">
               <div class="summary-label">Main Threat</div>
-              <div class="summary-value" id="main-threat">SEO decay + Security Risk</div>
+              <div class="summary-value" id="main-threat">--</div>
             </div>
             <div class="summary-item">
               <div class="summary-label">Opportunity</div>
-              <div class="summary-value" id="main-opportunity">AI traffic + Speed optimization</div>
+              <div class="summary-value" id="main-opportunity">--</div>
             </div>
           </div>
         </section>
@@ -288,11 +301,11 @@
         <section class="impact-grid">
           <div class="impact-card">
             <div class="impact-title">Traffic Leakage</div>
-            <div class="impact-value" id="traffic-leak">12,300 visitors/month</div>
+            <div class="impact-value" id="traffic-leak">--</div>
           </div>
           <div class="impact-card">
             <div class="impact-title">Revenue Loss</div>
-            <div class="impact-value" id="revenue-loss">₹4.6 lakh/year</div>
+            <div class="impact-value" id="revenue-loss">--</div>
           </div>
         </section>
 
@@ -310,27 +323,27 @@
         <div class="scores-grid">
           <div class="score-card">
             <div class="score-label">Trust Score</div>
-            <div class="score-circle score-red" id="trust-score">--</div>
+            <div class="score-circle" id="trust-score">--</div>
             <div style="font-size: 11px; color: var(--text-secondary)">SSL, Security, Reputation</div>
           </div>
           <div class="score-card">
             <div class="score-label">Growth Score</div>
-            <div class="score-circle score-yellow" id="growth-score">--</div>
+            <div class="score-circle" id="growth-score">--</div>
             <div style="font-size: 11px; color: var(--text-secondary)">SEO, Backlinks, Content</div>
           </div>
           <div class="score-card">
             <div class="score-label">Tech Score</div>
-            <div class="score-circle score-green" id="tech-score">--</div>
+            <div class="score-circle" id="tech-score">--</div>
             <div style="font-size: 11px; color: var(--text-secondary)">Speed, Uptime, Errors</div>
           </div>
           <div class="score-card">
             <div class="score-label">Revenue Score</div>
-            <div class="score-circle score-yellow" id="revenue-score">--</div>
+            <div class="score-circle" id="revenue-score">--</div>
             <div style="font-size: 11px; color: var(--text-secondary)">Ads, Funnels, UX</div>
           </div>
           <div class="score-card">
             <div class="score-label">AI-Readiness</div>
-            <div class="score-circle score-red" id="ai-score">--</div>
+            <div class="score-circle" id="ai-score">--</div>
             <div style="font-size: 11px; color: var(--text-secondary)">AI Crawlability</div>
           </div>
         </div>
@@ -348,33 +361,86 @@
   </div>
 
   <script>
-    let currentDomain = "example.com";
+    let currentDomain = "";
+    let currentUser = "";
+
+    function checkSession() {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        window.location.href = "/static/auth.html";
+        return;
+      }
+      try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        currentUser = payload.sub;
+        document.getElementById('user-display-name').textContent = currentUser;
+      } catch (e) {
+        window.location.href = "/static/auth.html";
+      }
+    }
 
     function switchView(viewName) {
       document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
-      document.getElementById(`${viewName}-view`).classList.add('active');
+      const target = document.getElementById(`${viewName}-view`);
+      if (target) target.classList.add('active');
       
       document.querySelectorAll('.nav-item').forEach(n => {
         n.classList.toggle('active', n.textContent.toLowerCase().includes(viewName));
       });
     }
 
+    async function loadUserDomains() {
+      try {
+        const response = await fetch(`/user-domains?username=${currentUser}`);
+        const domains = await response.json();
+        const select = document.getElementById('domain-select');
+        select.innerHTML = domains.map(d => `<option value="${d}">${d}</option>`).join('');
+        
+        if (domains.length > 0) {
+          currentDomain = domains[0];
+          loadDashboard();
+        } else {
+          document.getElementById('main-verdict').textContent = "NO DOMAINS";
+          document.getElementById('main-verdict').className = "status-verdict";
+        }
+      } catch (e) {
+        console.error("Error loading domains:", e);
+      }
+    }
+
     async function loadDashboard() {
-      currentDomain = document.getElementById('domain-select').value;
-      
+      const select = document.getElementById('domain-select');
+      if (select.value) currentDomain = select.value;
+      if (!currentDomain) return;
+
       try {
         const overview = await fetch(`/overview/${currentDomain}`).then(r => r.json());
         if (overview && !overview.error) {
           document.getElementById('global-health-score').textContent = overview.trust_score;
-          document.getElementById('trust-score').textContent = overview.trust_score;
-          document.getElementById('main-verdict').textContent = overview.verdict.toUpperCase();
-          document.getElementById('main-verdict').className = 'status-verdict ' + (overview.severity === 'high' ? 'losing' : '');
           
+          const trustCircle = document.getElementById('trust-score');
+          trustCircle.textContent = overview.trust_score;
+          trustCircle.className = 'score-circle ' + (overview.trust_score > 80 ? 'score-green' : (overview.trust_score > 50 ? 'score-yellow' : 'score-red'));
+          
+          const verdict = document.getElementById('main-verdict');
+          verdict.textContent = overview.verdict.toUpperCase();
+          verdict.className = 'status-verdict ' + (overview.severity === 'high' ? 'losing' : (overview.severity === 'low' ? 'stable' : ''));
+          
+          // Dynamic content based on real data
+          document.getElementById('main-threat').textContent = overview.severity === 'high' ? "Critical Security Vulnerabilities" : "Minor Configuration Issues";
+          document.getElementById('main-opportunity').textContent = "AI traffic + Speed optimization";
+          document.getElementById('traffic-leak').textContent = overview.severity === 'high' ? "12,300 visitors/month" : "0 visitors/month";
+          document.getElementById('revenue-loss').textContent = overview.severity === 'high' ? "₹4.6 lakh/year" : "₹0/year";
+
           // Mocking other scores for UI demonstration
           document.getElementById('growth-score').textContent = "64";
+          document.getElementById('growth-score').className = "score-circle score-yellow";
           document.getElementById('tech-score').textContent = "92";
+          document.getElementById('tech-score').className = "score-circle score-green";
           document.getElementById('revenue-score').textContent = "45";
+          document.getElementById('revenue-score').className = "score-circle score-yellow";
           document.getElementById('ai-score').textContent = "28";
+          document.getElementById('ai-score').className = "score-circle score-red";
         }
 
         const actions = await fetch(`/actions/${currentDomain}`).then(r => r.json());
@@ -391,16 +457,36 @@
           </div>
         `).join('');
         
-        decisionList.innerHTML = actionsHtml;
-        fullRiskList.innerHTML = actionsHtml;
+        decisionList.innerHTML = actionsHtml || '<div style="color: var(--text-secondary)">No critical decisions required.</div>';
+        fullRiskList.innerHTML = actionsHtml || '<div style="color: var(--text-secondary)">No active risks detected.</div>';
 
       } catch (e) {
         console.error("Error loading dashboard:", e);
       }
     }
 
+    async function registerNewDomain() {
+      const domain = prompt("Enter domain to monitor (e.g., example.com):");
+      if (!domain) return;
+
+      try {
+        const res = await fetch(`/register-domain?domain=${domain}&username=${currentUser}`, { method: 'POST' });
+        const data = await res.json();
+        alert(data.message || data.error);
+        loadUserDomains();
+      } catch (e) {
+        alert("Error registering domain");
+      }
+    }
+
+    function logout() {
+      localStorage.removeItem("token");
+      window.location.href = "/static/auth.html";
+    }
+
     // Initial load
-    loadDashboard();
+    checkSession();
+    loadUserDomains();
   </script>
 </body>
 </html>

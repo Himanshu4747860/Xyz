@@ -14,9 +14,23 @@ app = FastAPI()
 # Existing routes here...
 
 @app.post("/register-domain")
-def register_domain(domain: str, user_id: int):
-    conn = sqlite3.connect(os.path.join(BASE_DIR, "webscan.db"))
+def register_domain(domain: str, username: str):
+    conn = get_conn()
     cur = conn.cursor()
+    # Get user_id from username
+    cur.execute("SELECT id FROM users WHERE username=?", (username,))
+    user_row = cur.fetchone()
+    if not user_row:
+        conn.close()
+        return {"error": "User not found"}
+    user_id = user_row[0]
+
+    # Check if domain already exists for this user
+    cur.execute("SELECT id FROM domains WHERE user_id=? AND domain=?", (user_id, domain))
+    if cur.fetchone():
+        conn.close()
+        return {"message": "Domain already registered"}
+
     cur.execute("""
         INSERT INTO domains (user_id, domain, created_at)
         VALUES (?, ?, ?)
@@ -24,13 +38,22 @@ def register_domain(domain: str, user_id: int):
     conn.commit()
     conn.close()
 
-    # Trigger scan immediately
+    # Trigger mock scan results for demonstration
     db_helpers.save_scan_results(
         domain,
-        80, "Safe", "low",
-        findings=[{"parameter":"SSL","risk":"Expired","severity":"high"}],
-        events=[{"change":"DNS updated","severity":"medium","time":datetime.utcnow().isoformat()}],
-        actions=[{"issue":"Weak SSL","risk":"High","action":"Renew cert","status":"Pending"}]
+        75, "Warning", "medium",
+        findings=[
+            {"parameter":"SSL","risk":"Expiring in 5 days","severity":"medium"},
+            {"parameter":"Headers","risk":"Missing CSP","severity":"high"}
+        ],
+        events=[
+            {"change":"Domain registered","severity":"low","time":datetime.utcnow().isoformat()},
+            {"change":"Initial scan completed","severity":"low","time":datetime.utcnow().isoformat()}
+        ],
+        actions=[
+            {"issue":"Missing CSP Header","risk":"High","action":"Add Content-Security-Policy","status":"Open"},
+            {"issue":"SSL Expiry","risk":"Medium","action":"Renew SSL Certificate","status":"Pending"}
+        ]
     )
 
     return {"message": f"Domain {domain} registered and scan started"}
@@ -57,6 +80,23 @@ def root():
 def auth_page():
     return RedirectResponse(url="/static/auth.html")
 
+@app.get("/user-domains")
+def get_user_domains(username: str):
+    conn = get_conn()
+    cur = conn.cursor()
+    # First get user_id
+    cur.execute("SELECT id FROM users WHERE username=?", (username,))
+    user_row = cur.fetchone()
+    if not user_row:
+        conn.close()
+        return []
+    user_id = user_row[0]
+    
+    cur.execute("SELECT domain FROM domains WHERE user_id=?", (user_id,))
+    rows = cur.fetchall()
+    conn.close()
+    return [row[0] for row in rows]
+
 @app.get("/overview/{domain}")
 def overview(domain: str):
     conn = get_conn()
@@ -71,7 +111,13 @@ def overview(domain: str):
     row = cur.fetchone()
     conn.close()
     if not row:
-        return {"error": "No scans found"}
+        return {
+            "domain": domain,
+            "trust_score": 0,
+            "verdict": "No Data",
+            "severity": "low",
+            "last_scan": None
+        }
     return {
         "domain": domain,
         "trust_score": row[0],

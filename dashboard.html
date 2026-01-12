@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Internet Intelligence & Decision Platform</title>
+  <title>Internet Control Panel | Operating System for Websites</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono&display=swap" rel="stylesheet">
   <style>
     :root {
@@ -17,15 +17,11 @@
       --accent-amber: #ffab00;
       --accent-red: #ff1744;
       --accent-green: #00e676;
-      --sidebar-width: 240px;
-      --topbar-height: 60px;
+      --sidebar-width: 260px;
+      --topbar-height: 64px;
     }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
       background: var(--bg-primary);
@@ -56,8 +52,8 @@
       color: var(--text-primary);
       display: flex;
       align-items: center;
-      gap: 8px;
-      margin-right: 48px;
+      gap: 10px;
+      margin-right: 40px;
     }
 
     .logo-icon {
@@ -67,51 +63,51 @@
       border-radius: 4px;
     }
 
-    .global-search {
-      flex: 1;
-      max-width: 600px;
-      position: relative;
-    }
-
-    .global-search input {
-      width: 100%;
+    .site-selector {
       background: var(--bg-primary);
       border: 1px solid var(--border-color);
-      border-radius: 6px;
-      padding: 8px 12px 8px 36px;
       color: var(--text-primary);
-      font-family: inherit;
+      padding: 6px 12px;
+      border-radius: 6px;
       font-size: 14px;
+      margin-right: 24px;
+      outline: none;
     }
 
-    .global-search::before {
-      content: "🔍";
-      position: absolute;
-      left: 12px;
-      top: 50%;
-      transform: translateY(-50%);
+    .global-health {
+      display: flex;
+      align-items: center;
+      gap: 12px;
       font-size: 14px;
-      opacity: 0.5;
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
+
+    .health-score-pill {
+      background: rgba(0, 229, 255, 0.1);
+      color: var(--accent-blue);
+      padding: 2px 10px;
+      border-radius: 20px;
+      border: 1px solid var(--accent-blue);
     }
 
     .top-bar-actions {
+      margin-left: auto;
       display: flex;
       align-items: center;
       gap: 20px;
-      margin-left: auto;
     }
 
-    .notification-icon { font-size: 18px; cursor: pointer; opacity: 0.7; }
-    .user-profile { width: 32px; height: 32px; background: #333; border-radius: 50%; cursor: pointer; }
+    .alert-dots { display: flex; gap: 6px; }
+    .dot { width: 8px; height: 8px; border-radius: 50%; }
+    .dot.red { background: var(--accent-red); box-shadow: 0 0 8px var(--accent-red); }
+    .dot.amber { background: var(--accent-amber); }
+    .dot.green { background: var(--accent-green); }
 
     /* Layout Container */
-    .app-container {
-      display: flex;
-      flex: 1;
-      overflow: hidden;
-    }
+    .app-container { display: flex; flex: 1; overflow: hidden; }
 
-    /* Left Sidebar */
+    /* Sidebar */
     .sidebar {
       width: var(--sidebar-width);
       background: var(--bg-secondary);
@@ -119,11 +115,10 @@
       display: flex;
       flex-direction: column;
       padding: 24px 0;
-      flex-shrink: 0;
     }
 
     .nav-item {
-      padding: 10px 24px;
+      padding: 12px 24px;
       display: flex;
       align-items: center;
       gap: 12px;
@@ -135,227 +130,103 @@
       cursor: pointer;
     }
 
-    .nav-item:hover {
-      background: rgba(255, 255, 255, 0.05);
-      color: var(--text-primary);
-    }
+    .nav-item:hover { background: rgba(255, 255, 255, 0.05); color: var(--text-primary); }
+    .nav-item.active { color: var(--accent-blue); background: rgba(0, 229, 255, 0.05); border-right: 2px solid var(--accent-blue); }
 
-    .nav-item.active {
-      color: var(--accent-blue);
-      background: rgba(0, 229, 255, 0.05);
-      border-right: 2px solid var(--accent-blue);
-    }
+    /* Main Content */
+    .main-content { flex: 1; overflow-y: auto; padding: 40px; display: flex; flex-direction: column; gap: 40px; }
 
-    /* Main Content Area */
-    .main-content {
-      flex: 1;
-      overflow-y: auto;
-      padding: 32px 48px;
-      display: flex;
-      flex-direction: column;
-      gap: 32px;
-    }
-
-    /* Website Header */
-    .website-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-    }
-
-    .website-info h1 {
-      font-size: 24px;
-      font-weight: 600;
-      margin-bottom: 8px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .status-badge {
-      font-size: 12px;
-      padding: 2px 8px;
+    /* Status Panel */
+    .status-panel {
+      background: linear-gradient(145deg, #1a1a1a, #0d0d0d);
+      border: 1px solid var(--border-color);
       border-radius: 12px;
-      text-transform: uppercase;
-      font-weight: 700;
-    }
-
-    .status-safe { background: rgba(0, 230, 118, 0.1); color: var(--accent-green); border: 1px solid var(--accent-green); }
-    .status-warning { background: rgba(255, 171, 0, 0.1); color: var(--accent-amber); border: 1px solid var(--accent-amber); }
-    .status-critical { background: rgba(255, 23, 68, 0.1); color: var(--accent-red); border: 1px solid var(--accent-red); }
-
-    .last-scan {
-      font-size: 13px;
-      color: var(--text-secondary);
-    }
-
-    /* Tabs */
-    .tabs {
-      display: flex;
-      gap: 24px;
-      border-bottom: 1px solid var(--border-color);
-    }
-
-    .tab {
-      padding: 12px 4px;
-      font-size: 14px;
-      font-weight: 500;
-      color: var(--text-secondary);
-      cursor: pointer;
+      padding: 40px;
       position: relative;
+      overflow: hidden;
     }
 
-    .tab.active {
-      color: var(--text-primary);
-    }
-
-    .tab.active::after {
+    .status-panel::before {
       content: "";
       position: absolute;
-      bottom: -1px;
-      left: 0;
-      right: 0;
-      height: 2px;
-      background: var(--accent-blue);
+      top: 0; right: 0;
+      width: 300px; height: 300px;
+      background: radial-gradient(circle, rgba(255, 23, 68, 0.05), transparent);
+      pointer-events: none;
     }
 
-    /* Dashboard Grid */
-    .dashboard-grid {
-      display: grid;
-      grid-template-columns: 1fr 350px;
-      gap: 32px;
-    }
+    .status-header { font-size: 14px; font-weight: 700; color: var(--text-secondary); letter-spacing: 2px; margin-bottom: 16px; }
+    .status-verdict { font-size: 64px; font-weight: 800; margin-bottom: 24px; letter-spacing: -2px; }
+    .status-verdict.losing { color: var(--accent-red); }
 
-    .card {
+    .status-summary { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; }
+    .summary-item { display: flex; flex-direction: column; gap: 8px; }
+    .summary-label { font-size: 12px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; }
+    .summary-value { font-size: 18px; font-weight: 500; }
+
+    /* Impact Cards */
+    .impact-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+    .impact-card {
       background: var(--bg-secondary);
       border: 1px solid var(--border-color);
       border-radius: 8px;
       padding: 24px;
-    }
-
-    .card-title {
-      font-size: 14px;
-      font-weight: 600;
-      color: var(--text-secondary);
-      margin-bottom: 20px;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    /* Health Score */
-    .health-section {
       display: flex;
-      align-items: center;
-      gap: 48px;
+      flex-direction: column;
+      gap: 8px;
     }
+    .impact-title { font-size: 14px; color: var(--text-secondary); }
+    .impact-value { font-size: 28px; font-weight: 700; color: var(--accent-red); }
 
-    .health-score-container {
-      position: relative;
-      width: 150px;
-      height: 150px;
+    /* 5 Super-Scores */
+    .scores-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; }
+    .score-card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.2s;
     }
-
-    .health-orb {
-      width: 100%;
-      height: 100%;
-      border-radius: 50%;
-      background: radial-gradient(circle, var(--accent-blue), transparent);
-      opacity: 0.2;
-      position: absolute;
-      animation: pulse 3s infinite ease-in-out;
+    .score-card:hover { border-color: var(--accent-blue); }
+    .score-label { font-size: 12px; font-weight: 600; color: var(--text-secondary); margin-bottom: 12px; }
+    .score-circle {
+      width: 60px; height: 60px; border-radius: 50%; margin: 0 auto 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 18px;
     }
+    .score-green { border: 3px solid var(--accent-green); color: var(--accent-green); }
+    .score-yellow { border: 3px solid var(--accent-amber); color: var(--accent-amber); }
+    .score-red { border: 3px solid var(--accent-red); color: var(--accent-red); }
 
-    @keyframes pulse {
-      0%, 100% { transform: scale(1); opacity: 0.2; }
-      50% { transform: scale(1.1); opacity: 0.4; }
-    }
-
-    .health-value {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      font-size: 48px;
-      font-weight: 700;
-      font-family: 'JetBrains Mono', monospace;
-    }
-
-    .verdict-text {
-      flex: 1;
-    }
-
-    .verdict-label {
-      font-size: 32px;
-      font-weight: 600;
-      margin-bottom: 8px;
-    }
-
-    .verdict-description {
-      color: var(--text-secondary);
-      line-height: 1.6;
-    }
-
-    /* Lists */
-    .list-item {
-      padding: 12px 0;
-      border-bottom: 1px solid var(--border-color);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .list-item:last-child { border-bottom: none; }
-
-    .item-main { display: flex; flex-direction: column; gap: 4px; }
-    .item-title { font-size: 14px; font-weight: 500; }
-    .item-meta { font-size: 12px; color: var(--text-secondary); }
-
-    .severity-tag {
-      font-size: 10px;
-      padding: 2px 6px;
-      border-radius: 4px;
-      font-weight: 700;
-      text-transform: uppercase;
-    }
-
-    .sev-high { background: rgba(255, 23, 68, 0.1); color: var(--accent-red); }
-    .sev-medium { background: rgba(255, 171, 0, 0.1); color: var(--accent-amber); }
-    .sev-low { background: rgba(0, 229, 255, 0.1); color: var(--accent-blue); }
-
-    /* Decisions */
-    .decision-card {
+    /* Risk Center */
+    .section-title { font-size: 20px; font-weight: 600; margin-bottom: 24px; display: flex; align-items: center; gap: 12px; }
+    .risk-list { display: flex; flex-direction: column; gap: 12px; }
+    .risk-item {
       background: var(--bg-tertiary);
       border: 1px solid var(--border-color);
-      border-radius: 6px;
-      padding: 16px;
-      margin-bottom: 12px;
-      transition: transform 0.2s;
-      cursor: pointer;
-    }
-
-    .decision-card:hover {
-      transform: translateX(4px);
-      border-color: var(--accent-blue);
-    }
-
-    .decision-header {
+      border-radius: 8px;
+      padding: 20px 24px;
       display: flex;
       justify-content: space-between;
-      margin-bottom: 8px;
+      align-items: center;
+    }
+    .risk-info { display: flex; flex-direction: column; gap: 4px; }
+    .risk-name { font-size: 16px; font-weight: 600; }
+    .risk-impact { font-size: 13px; color: var(--accent-red); font-weight: 500; }
+    .fix-btn {
+      background: var(--accent-blue); color: black; border: none;
+      padding: 10px 20px; border-radius: 6px; font-weight: 700;
+      font-size: 13px; cursor: pointer;
     }
 
-    .decision-title { font-size: 14px; font-weight: 600; }
-    .decision-impact { font-size: 11px; color: var(--accent-blue); font-weight: 700; }
-
-    /* Hidden sections */
+    /* Hidden Sections */
     .view-section { display: none; }
-    .view-section.active { display: block; }
+    .view-section.active { display: flex; flex-direction: column; gap: 40px; }
 
-    /* Scrollbar */
     ::-webkit-scrollbar { width: 6px; }
-    ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
-    ::-webkit-scrollbar-thumb:hover { background: #444; }
   </style>
 </head>
 <body>
@@ -365,127 +236,111 @@
       <div class="logo-icon"></div>
       INTELLIGENCE
     </div>
-    <div class="global-search">
-      <input type="text" id="domain-input" placeholder="Search domain (e.g. example.com)" value="example.com">
+    <select class="site-selector" id="domain-select" onchange="loadDashboard()">
+      <option value="example.com">example.com</option>
+    </select>
+    <div class="global-health">
+      HEALTH SCORE <span class="health-score-pill" id="global-health-score">--</span>
     </div>
     <div class="top-bar-actions">
-      <div class="notification-icon">🔔</div>
-      <div class="user-profile"></div>
+      <div class="alert-dots">
+        <div class="dot red"></div>
+        <div class="dot amber"></div>
+        <div class="dot green"></div>
+      </div>
+      <div style="width: 32px; height: 32px; background: #333; border-radius: 50%;"></div>
     </div>
   </header>
 
   <div class="app-container">
     <aside class="sidebar">
-      <div class="nav-item active" onclick="switchTab('overview')">
-        <span>🏠</span> Overview
-      </div>
-      <div class="nav-item" onclick="switchTab('risks')">
-        <span>⚠️</span> Risks
-      </div>
-      <div class="nav-item" onclick="switchTab('decisions')">
-        <span>⚡</span> Decisions
-      </div>
-      <div class="nav-item" onclick="switchTab('timeline')">
-        <span>📅</span> Timeline
-      </div>
-      <div class="nav-item" onclick="switchTab('intelligence')">
-        <span>🧠</span> Intelligence
-      </div>
-      <div class="nav-item" onclick="switchTab('settings')">
-        <span>⚙️</span> Settings
-      </div>
+      <div class="nav-item active" onclick="switchView('dashboard')">Dashboard</div>
+      <div class="nav-item" onclick="switchView('risks')">Risk Center</div>
+      <div class="nav-item" onclick="switchView('growth')">Growth Engine</div>
+      <div class="nav-item" onclick="switchView('advisor')">AI Advisor</div>
+      <div class="nav-item" onclick="switchView('monitor')">Website Monitor</div>
+      <div class="nav-item">Competitors</div>
+      <div class="nav-item">Reports</div>
+      <div class="nav-item">Automations</div>
+      <div class="nav-item">Settings</div>
     </aside>
 
     <main class="main-content">
-      <div class="website-header">
-        <div class="website-info">
-          <h1 id="display-domain">example.com <span id="status-badge" class="status-badge status-safe">Safe</span></h1>
-          <div class="last-scan" id="last-scan-time">Last scan: --</div>
-        </div>
-        <button style="background: var(--accent-blue); color: black; border: none; padding: 8px 16px; border-radius: 4px; font-weight: 600; cursor: pointer;" onclick="triggerScan()">Run Scan</button>
-      </div>
-
-      <nav class="tabs">
-        <div class="tab active" onclick="switchTab('overview')">Overview</div>
-        <div class="tab" onclick="switchTab('risks')">Risks</div>
-        <div class="tab" onclick="switchTab('decisions')">Decisions</div>
-        <div class="tab" onclick="switchTab('timeline')">Timeline</div>
-        <div class="tab" onclick="switchTab('intelligence')">Intelligence</div>
-      </nav>
-
-      <!-- Overview Section -->
-      <div id="overview-section" class="view-section active">
-        <div class="dashboard-grid">
-          <div class="left-col">
-            <div class="card" style="margin-bottom: 32px;">
-              <div class="card-title">System Health</div>
-              <div class="health-section">
-                <div class="health-score-container">
-                  <div class="health-orb" id="health-orb"></div>
-                  <div class="health-value" id="health-score">--</div>
-                </div>
-                <div class="verdict-text">
-                  <div class="verdict-label" id="verdict-label">Analyzing...</div>
-                  <div class="verdict-description" id="verdict-desc">
-                    The system is currently evaluating the security posture and operational integrity of this domain.
-                  </div>
-                </div>
-              </div>
+      
+      <!-- Dashboard View -->
+      <div id="dashboard-view" class="view-section active">
+        <section class="status-panel">
+          <div class="status-header">YOUR WEBSITE IS:</div>
+          <div class="status-verdict losing" id="main-verdict">LOSING</div>
+          
+          <div class="status-summary">
+            <div class="summary-item">
+              <div class="summary-label">Main Threat</div>
+              <div class="summary-value" id="main-threat">SEO decay + Security Risk</div>
             </div>
-
-            <div class="card">
-              <div class="card-title">Recent Events</div>
-              <div id="recent-events-list">
-                <!-- Events will be injected here -->
-              </div>
+            <div class="summary-item">
+              <div class="summary-label">Opportunity</div>
+              <div class="summary-value" id="main-opportunity">AI traffic + Speed optimization</div>
             </div>
           </div>
+        </section>
 
-          <div class="right-col">
-            <div class="card" style="margin-bottom: 32px;">
-              <div class="card-title">Active Decisions</div>
-              <div id="active-decisions-list">
-                <!-- Decisions will be injected here -->
-              </div>
-            </div>
-
-            <div class="card">
-              <div class="card-title">Risk Distribution</div>
-              <div style="height: 200px; display: flex; align-items: center; justify-content: center; color: var(--text-secondary); font-size: 12px;">
-                [ Risk Distribution Chart Placeholder ]
-              </div>
-            </div>
+        <section class="impact-grid">
+          <div class="impact-card">
+            <div class="impact-title">Traffic Leakage</div>
+            <div class="impact-value" id="traffic-leak">12,300 visitors/month</div>
           </div>
-        </div>
+          <div class="impact-card">
+            <div class="impact-title">Revenue Loss</div>
+            <div class="impact-value" id="revenue-loss">₹4.6 lakh/year</div>
+          </div>
+        </section>
+
+        <section>
+          <div class="section-title">Critical Decisions</div>
+          <div class="risk-list" id="critical-decisions">
+            <!-- Injected by JS -->
+          </div>
+        </section>
       </div>
 
-      <!-- Risks Section -->
-      <div id="risks-section" class="view-section">
-        <div class="card">
-          <div class="card-title">Identified Risks</div>
-          <div id="full-risks-list">
-            <!-- Full risks will be injected here -->
+      <!-- Monitor View -->
+      <div id="monitor-view" class="view-section">
+        <div class="section-title">Website Monitor (120-Parameter Engine)</div>
+        <div class="scores-grid">
+          <div class="score-card">
+            <div class="score-label">Trust Score</div>
+            <div class="score-circle score-red" id="trust-score">--</div>
+            <div style="font-size: 11px; color: var(--text-secondary)">SSL, Security, Reputation</div>
+          </div>
+          <div class="score-card">
+            <div class="score-label">Growth Score</div>
+            <div class="score-circle score-yellow" id="growth-score">--</div>
+            <div style="font-size: 11px; color: var(--text-secondary)">SEO, Backlinks, Content</div>
+          </div>
+          <div class="score-card">
+            <div class="score-label">Tech Score</div>
+            <div class="score-circle score-green" id="tech-score">--</div>
+            <div style="font-size: 11px; color: var(--text-secondary)">Speed, Uptime, Errors</div>
+          </div>
+          <div class="score-card">
+            <div class="score-label">Revenue Score</div>
+            <div class="score-circle score-yellow" id="revenue-score">--</div>
+            <div style="font-size: 11px; color: var(--text-secondary)">Ads, Funnels, UX</div>
+          </div>
+          <div class="score-card">
+            <div class="score-label">AI-Readiness</div>
+            <div class="score-circle score-red" id="ai-score">--</div>
+            <div style="font-size: 11px; color: var(--text-secondary)">AI Crawlability</div>
           </div>
         </div>
       </div>
 
-      <!-- Decisions Section -->
-      <div id="decisions-section" class="view-section">
-        <div class="card">
-          <div class="card-title">Required Actions</div>
-          <div id="full-decisions-list">
-            <!-- Full decisions will be injected here -->
-          </div>
-        </div>
-      </div>
-
-      <!-- Timeline Section -->
-      <div id="timeline-section" class="view-section">
-        <div class="card">
-          <div class="card-title">Event Timeline</div>
-          <div id="full-timeline-list">
-            <!-- Full timeline will be injected here -->
-          </div>
+      <!-- Risk Center View -->
+      <div id="risks-view" class="view-section">
+        <div class="section-title">Risk Center</div>
+        <div class="risk-list" id="full-risk-list">
+          <!-- Injected by JS -->
         </div>
       </div>
 
@@ -495,122 +350,54 @@
   <script>
     let currentDomain = "example.com";
 
-    async function fetchData(endpoint) {
-      try {
-        const response = await fetch(`/${endpoint}/${currentDomain}`);
-        return await response.json();
-      } catch (e) {
-        console.error(`Error fetching ${endpoint}:`, e);
-        return null;
-      }
-    }
-
-    function switchTab(tabName) {
-      // Update UI tabs
-      document.querySelectorAll('.tab').forEach(t => {
-        t.classList.toggle('active', t.textContent.toLowerCase() === tabName);
-      });
-      document.querySelectorAll('.nav-item').forEach(t => {
-        t.classList.toggle('active', t.textContent.toLowerCase().includes(tabName));
-      });
-
-      // Update sections
-      document.querySelectorAll('.view-section').forEach(s => {
-        s.classList.toggle('active', s.id === `${tabName}-section`);
+    function switchView(viewName) {
+      document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
+      document.getElementById(`${viewName}-view`).classList.add('active');
+      
+      document.querySelectorAll('.nav-item').forEach(n => {
+        n.classList.toggle('active', n.textContent.toLowerCase().includes(viewName));
       });
     }
 
     async function loadDashboard() {
-      const domainInput = document.getElementById('domain-input');
-      currentDomain = domainInput.value || "example.com";
-      document.getElementById('display-domain').childNodes[0].textContent = currentDomain + " ";
+      currentDomain = document.getElementById('domain-select').value;
+      
+      try {
+        const overview = await fetch(`/overview/${currentDomain}`).then(r => r.json());
+        if (overview && !overview.error) {
+          document.getElementById('global-health-score').textContent = overview.trust_score;
+          document.getElementById('trust-score').textContent = overview.trust_score;
+          document.getElementById('main-verdict').textContent = overview.verdict.toUpperCase();
+          document.getElementById('main-verdict').className = 'status-verdict ' + (overview.severity === 'high' ? 'losing' : '');
+          
+          // Mocking other scores for UI demonstration
+          document.getElementById('growth-score').textContent = "64";
+          document.getElementById('tech-score').textContent = "92";
+          document.getElementById('revenue-score').textContent = "45";
+          document.getElementById('ai-score').textContent = "28";
+        }
 
-      const overview = await fetchData('overview');
-      if (overview && !overview.error) {
-        document.getElementById('health-score').textContent = overview.trust_score;
-        document.getElementById('verdict-label').textContent = overview.verdict;
-        document.getElementById('last-scan-time').textContent = `Last scan: ${new Date(overview.last_scan).toLocaleString()}`;
+        const actions = await fetch(`/actions/${currentDomain}`).then(r => r.json());
+        const decisionList = document.getElementById('critical-decisions');
+        const fullRiskList = document.getElementById('full-risk-list');
         
-        const badge = document.getElementById('status-badge');
-        badge.textContent = overview.verdict;
-        badge.className = 'status-badge ' + (overview.severity === 'high' ? 'status-critical' : (overview.severity === 'medium' ? 'status-warning' : 'status-safe'));
-        
-        const orb = document.getElementById('health-orb');
-        const color = overview.severity === 'high' ? 'var(--accent-red)' : (overview.severity === 'medium' ? 'var(--accent-amber)' : 'var(--accent-blue)');
-        orb.style.background = `radial-gradient(circle, ${color}, transparent)`;
-      }
-
-      // Load Risks
-      const risks = await fetchData('risks');
-      const recentEventsList = document.getElementById('recent-events-list');
-      const fullRisksList = document.getElementById('full-risks-list');
-      if (risks) {
-        fullRisksList.innerHTML = risks.map(r => `
-          <div class="list-item">
-            <div class="item-main">
-              <div class="item-title">${r.parameter}</div>
-              <div class="item-meta">${r.risk}</div>
-            </div>
-            <span class="severity-tag sev-${r.severity}">${r.severity}</span>
-          </div>
-        `).join('');
-      }
-
-      // Load Timeline
-      const timeline = await fetchData('timeline');
-      const fullTimelineList = document.getElementById('full-timeline-list');
-      if (timeline) {
-        const timelineHtml = timeline.map(t => `
-          <div class="list-item">
-            <div class="item-main">
-              <div class="item-title">${t.change}</div>
-              <div class="item-meta">${new Date(t.time).toLocaleString()}</div>
-            </div>
-            <span class="severity-tag sev-${t.severity}">${t.severity}</span>
-          </div>
-        `).join('');
-        fullTimelineList.innerHTML = timelineHtml;
-        recentEventsList.innerHTML = timeline.slice(0, 5).map(t => `
-          <div class="list-item">
-            <div class="item-main">
-              <div class="item-title">${t.change}</div>
-              <div class="item-meta">${new Date(t.time).toLocaleTimeString()}</div>
-            </div>
-          </div>
-        `).join('');
-      }
-
-      // Load Decisions
-      const actions = await fetchData('actions');
-      const activeDecisionsList = document.getElementById('active-decisions-list');
-      const fullDecisionsList = document.getElementById('full-decisions-list');
-      if (actions) {
         const actionsHtml = actions.map(a => `
-          <div class="decision-card">
-            <div class="decision-header">
-              <div class="decision-title">${a.issue}</div>
-              <div class="decision-impact">${a.risk} IMPACT</div>
+          <div class="risk-item">
+            <div class="risk-info">
+              <div class="risk-name">${a.issue}</div>
+              <div class="risk-impact">Impact: ${a.risk} | Status: ${a.status}</div>
             </div>
-            <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 8px;">Action: ${a.action}</div>
-            <div style="font-size: 11px; color: var(--accent-blue); font-weight: 600;">STATUS: ${a.status}</div>
+            <button class="fix-btn" onclick="alert('Initiating fix...')">FIX NOW</button>
           </div>
         `).join('');
-        fullDecisionsList.innerHTML = actionsHtml;
-        activeDecisionsList.innerHTML = actionsHtml;
+        
+        decisionList.innerHTML = actionsHtml;
+        fullRiskList.innerHTML = actionsHtml;
+
+      } catch (e) {
+        console.error("Error loading dashboard:", e);
       }
     }
-
-    async function triggerScan() {
-      const domain = document.getElementById('domain-input').value;
-      // In a real app, we'd call the register-domain endpoint
-      alert(`Triggering scan for ${domain}...`);
-      await fetch(`/register-domain?domain=${domain}&user_id=1`, { method: 'POST' });
-      setTimeout(loadDashboard, 2000);
-    }
-
-    document.getElementById('domain-input').addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') loadDashboard();
-    });
 
     // Initial load
     loadDashboard();

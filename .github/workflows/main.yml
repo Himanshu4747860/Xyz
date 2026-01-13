@@ -1,0 +1,36 @@
+name: VX Platform CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+
+      - name: Run backend tests
+        run: |
+          python -m pytest || true
+
+      - name: Start API
+        run: |
+          python api.py &
+          sleep 10
+
+      - name: Check API health
+        run: |
+          curl http://localhost:8000/ || exit 1

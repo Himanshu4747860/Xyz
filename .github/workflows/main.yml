@@ -1,13 +1,15 @@
-name: VX Platform CI
+name: Backend CI
 
 on:
   push:
     branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
+
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
     - name: Checkout repo
       uses: actions/checkout@v3
@@ -28,7 +30,7 @@ jobs:
     - name: Start API server
       run: |
         nohup uvicorn api:app --host 0.0.0.0 --port 8000 &
-        sleep 5
+        sleep 10
 
     - name: Health check
-      run: curl http://localhost:8000/ || exit 1
+      run: curl --fail http://127.0.0.1:8000/ || exit 1

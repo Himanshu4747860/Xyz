@@ -34,3 +34,6 @@ jobs:
 
     - name: Health check
       run: curl --fail http://127.0.0.1:8000/ || exit 1
+
+    - name: Run tests
+      run: pytest --maxfail=1 --disable-warnings -q

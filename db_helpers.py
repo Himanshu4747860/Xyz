@@ -1,70 +1,43 @@
-import whois
-import dns.resolver
+# db_helpers.py
 from datetime import datetime
-from models import CheckResult
-from checks import ssl_tls, security_headers, domain_identity
-from checks.ssl_tls import fetch_certificate
+import sqlite3, os
 
-def collect_domain_data(domain: str):
-    findings = []
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-    # WHOIS
-    try:
-        w = whois.whois(domain)
-        whois_data = {
-            "creation_date": str(w.creation_date) if w.creation_date else None,
-            "expiration_date": str(w.expiration_date) if w.expiration_date else None,
-            "registrar": w.registrar,
-            "emails": w.emails,
-        }
-        findings.extend(domain_identity.run(whois_data))
-    except Exception as e:
-        findings.append(CheckResult("DOMAIN & IDENTITY", "WHOIS lookup", "ERROR", None, str(e)))
+def get_conn():
+    return sqlite3.connect(os.path.join(BASE_DIR, "webscan.db"))
 
-    # SSL/TLS
-    cert_info = fetch_certificate(domain)
-    findings.extend(ssl_tls.run(cert_info))
+def save_scan_results(domain, trust_score, verdict, severity, findings, events, actions):
+    conn = get_conn()
+    cur = conn.cursor()
 
-    # DNS (fetch + analyze inline)
-    try:
-        a_records = [str(r) for r in dns.resolver.resolve(domain, "A")]
-        findings.append(CheckResult("DNS", "A records", "PASS", ",".join(a_records), None))
-    except Exception as e:
-        findings.append(CheckResult("DNS", "A records", "ERROR", None, str(e)))
+    # Insert run
+    cur.execute("""
+        INSERT INTO runs (domain, trust_score, verdict, severity, created_at)
+        VALUES (?, ?, ?, ?, ?)
+    """, (domain, trust_score, verdict, severity, datetime.utcnow().isoformat()))
+    run_id = cur.lastrowid
 
-    try:
-        mx_records = [str(r) for r in dns.resolver.resolve(domain, "MX")]
-        findings.append(CheckResult("DNS", "MX records", "INFO", ",".join(mx_records), None))
-    except Exception as e:
-        findings.append(CheckResult("DNS", "MX records", "ERROR", None, str(e)))
-
-    try:
-        ns_records = [str(r) for r in dns.resolver.resolve(domain, "NS")]
-        findings.append(CheckResult("DNS", "NS records", "INFO", ",".join(ns_records), None))
-    except Exception as e:
-        findings.append(CheckResult("DNS", "NS records", "ERROR", None, str(e)))
-
-    # Security headers
-    findings.extend(security_headers.run(domain))
-
-    # --- scoring logic ---
-    score = 100
+    # Insert findings
     for f in findings:
-        if f.status == "WARN":
-            score -= 10
-        elif f.status == "ERROR":
-            score -= 5
-        elif f.status == "FAIL":
-            score -= 20
+        cur.execute("""
+            INSERT INTO findings (run_id, parameter, risk, severity)
+            VALUES (?, ?, ?, ?)
+        """, (run_id, f["parameter"], f["risk"], f["severity"]))
 
-    verdict = "Safe" if score >= 85 else ("Warning" if score >= 65 else "Critical")
-    severity = "low" if score >= 85 else ("medium" if score >= 65 else "high")
+    # Insert events
+    for e in events:
+        cur.execute("""
+            INSERT INTO events (domain, change, severity, created_at)
+            VALUES (?, ?, ?, ?)
+        """, (domain, e["change"], e["severity"], e["time"]))
 
-    return {
-        "trust_score": max(0, min(100, score)),
-        "verdict": verdict,
-        "severity": severity,
-        "findings": [f.__dict__ for f in findings],
-        "events": [{"change": "Scan completed", "severity": "low", "time": datetime.utcnow().isoformat()}],
-        "actions": []
-    }
+    # Insert actions
+    for a in actions:
+        cur.execute("""
+            INSERT INTO actions (domain, issue, risk, action, status)
+            VALUES (?, ?, ?, ?, ?)
+        """, (domain, a["issue"], a["risk"], a["action"], a["status"]))
+
+    conn.commit()
+    conn.close()

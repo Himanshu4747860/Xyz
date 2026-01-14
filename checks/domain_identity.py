@@ -1,6 +1,6 @@
 from datetime import datetime
 from dateutil import parser
-from models import CheckResult
+from ..models import CheckResult
 
 def run(whois_data) -> list[CheckResult]:
     results = []

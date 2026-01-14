@@ -1,27 +1,26 @@
-# api.py
-from fastapi import FastAPI
+import os
+import sqlite3
+from datetime import datetime
+from fastapi import FastAPI, Depends, HTTPException
 from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
-from datetime import datetime
-import sqlite3, os
-import auth
 import db_helpers
-from fastapi import FastAPI
-from db_helpers import collect_domain_data   # <-- add this line
-
+import auth
+import models
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
 app = FastAPI()
 
-# ------------------------------
-# Helpers
-# ------------------------------
+# Mount static files
+app.mount("/static", StaticFiles(directory=os.path.join(BASE_DIR, "static")), name="static")
+
+# Include auth router
+app.include_router(auth.router)
+
 def get_conn():
     return sqlite3.connect(os.path.join(BASE_DIR, "webscan.db"))
 
-# ------------------------------
-# Auth pages (static)
-# ------------------------------
 @app.get("/")
 def root():
     return RedirectResponse(url="/static/dashboard.html")
@@ -29,39 +28,6 @@ def root():
 @app.get("/auth")
 def auth_page():
     return RedirectResponse(url="/static/auth.html")
-
-# ------------------------------
-# Domain registration & listing
-# ------------------------------
-@app.post("/register-domain")
-def register_domain(domain: str, username: str):
-    conn = get_conn()
-    cur = conn.cursor()
-
-    cur.execute("SELECT id FROM users WHERE username=?", (username,))
-    user_row = cur.fetchone()
-    if not user_row:
-        conn.close()
-        return {"error": "User not found"}
-    user_id = user_row[0]
-
-    cur.execute("SELECT id FROM domains WHERE user_id=? AND domain=?", (user_id, domain))
-    if cur.fetchone():
-        conn.close()
-        return {"message": "Domain already registered"}
-
-    cur.execute(
-        "INSERT INTO domains (user_id, domain, created_at) VALUES (?, ?, ?)",
-        (user_id, domain, datetime.utcnow().isoformat())
-    )
-    conn.commit()
-    conn.close()
-
-    # Enqueue and process a first scan synchronously (v0)
-    job_id = db_helpers.enqueue_scan_job(domain)
-    db_helpers.process_job_simple(job_id)
-
-    return {"message": f"Domain {domain} registered and initial scan completed", "job_id": job_id}
 
 @app.get("/user-domains")
 def get_user_domains(username: str):
@@ -73,29 +39,56 @@ def get_user_domains(username: str):
         conn.close()
         return []
     user_id = user_row[0]
-
     cur.execute("SELECT domain FROM domains WHERE user_id=?", (user_id,))
     rows = cur.fetchall()
     conn.close()
     return [row[0] for row in rows]
 
-# ------------------------------
-# Scan orchestration
-# ------------------------------
-@app.post("/scan")
-def scan(domain: str):
-    job_id = db_helpers.enqueue_scan_job(domain)
-    # For now, process immediately (synchronous v0)
-    db_helpers.process_job_simple(job_id)
-    return {"job_id": job_id, "status": db_helpers.job_status(job_id)}
+@app.post("/register-domain")
+def register_domain(domain: str, username: str):
+    try:
+        conn = get_conn()
+        cur = conn.cursor()
+        cur.execute("SELECT id FROM users WHERE username=?", (username,))
+        user_row = cur.fetchone()
+        if not user_row:
+            conn.close()
+            return {"error": "User not found"}
+        user_id = user_row[0]
 
-@app.get("/scan/{job_id}")
-def scan_status(job_id: int):
-    return db_helpers.job_status(job_id)
+        cur.execute("SELECT id FROM domains WHERE user_id=? AND domain=?", (user_id, domain))
+        if cur.fetchone():
+            conn.close()
+            return {"message": "Domain already registered"}
 
-# ------------------------------
-# Intelligence APIs
-# ------------------------------
+        cur.execute("""
+            INSERT INTO domains (user_id, domain, created_at)
+            VALUES (?, ?, ?)
+        """, (user_id, domain, datetime.utcnow().isoformat()))
+        conn.commit()
+        conn.close()
+
+        # Trigger mock scan results
+        db_helpers.save_scan_results(
+            domain,
+            75, "Warning", "medium",
+            findings=[
+                {"parameter":"SSL","risk":"Expiring in 5 days","severity":"medium"},
+                {"parameter":"Headers","risk":"Missing CSP","severity":"high"}
+            ],
+            events=[
+                {"change":"Domain registered","severity":"low","time":datetime.utcnow().isoformat()},
+                {"change":"Initial scan completed","severity":"low","time":datetime.utcnow().isoformat()}
+            ],
+            actions=[
+                {"issue":"Missing CSP Header","risk":"High","action":"Add Content-Security-Policy","status":"Open"},
+                {"issue":"SSL Expiry","risk":"Medium","action":"Renew SSL Certificate","status":"Pending"}
+            ]
+        )
+        return {"message": f"Domain {domain} registered and scan started"}
+    except Exception as e:
+        return {"error": str(e)}
+
 @app.get("/overview/{domain}")
 def overview(domain: str):
     conn = get_conn()
@@ -129,56 +122,31 @@ def overview(domain: str):
 def risks(domain: str):
     conn = get_conn()
     cur = conn.cursor()
-    cur.execute("SELECT MAX(id) FROM runs WHERE domain=?", (domain,))
+    cur.execute("SELECT id FROM runs WHERE domain=? ORDER BY created_at DESC LIMIT 1", (domain,))
     run_row = cur.fetchone()
-    run_id = run_row[0] if run_row else None
-    if not run_id:
+    if not run_row:
         conn.close()
         return []
-    cur.execute("""
-        SELECT parameter, risk, severity, value
-        FROM findings
-        WHERE run_id=?
-    """, (run_id,))
+    run_id = run_row[0]
+    cur.execute("SELECT parameter, risk, severity FROM findings WHERE run_id=?", (run_id,))
     rows = cur.fetchall()
     conn.close()
-    return [{"parameter": p, "risk": r, "severity": s, "value": v} for p, r, s, v in rows]
+    return [{"parameter": r[0], "risk": r[1], "severity": r[2]} for r in rows]
+
+@app.get("/actions/{domain}")
+def actions(domain: str):
+    conn = get_conn()
+    cur = conn.cursor()
+    cur.execute("SELECT issue, risk, action, status FROM actions WHERE domain=?", (domain,))
+    rows = cur.fetchall()
+    conn.close()
+    return [{"issue": r[0], "risk": r[1], "action": r[2], "status": r[3]} for r in rows]
 
 @app.get("/timeline/{domain}")
 def timeline(domain: str):
     conn = get_conn()
     cur = conn.cursor()
-    cur.execute("""
-        SELECT change, severity, created_at
-        FROM events
-        WHERE domain=?
-        ORDER BY created_at DESC
-    """, (domain,))
+    cur.execute("SELECT change, severity, created_at FROM events WHERE domain=? ORDER BY created_at DESC", (domain,))
     rows = cur.fetchall()
     conn.close()
-    return [{"change": c, "severity": s, "time": t} for c, s, t in rows]
-
-@app.get("/actions/{domain}")
-def get_actions(domain: str):
-    risks = collect_domain_data(domain)["findings"]
-    actions = []
-    for r in risks:
-        if r["parameter"].startswith("Ports:Open"):
-            actions.append("Restrict SSH (22) access to trusted IPs; configure firewall.")
-        elif r["parameter"].startswith("SSL:ExpiryDays"):
-            actions.append("Renew SSL certificate before expiry.")
-        elif r["parameter"].startswith("Headers:CSP"):
-            actions.append("Review CSP policy for completeness.")
-        elif r["parameter"].startswith("Server:Fingerprint"):
-            actions.append("Keep server patched; consider hiding fingerprint headers.")
-    return {"domain": domain, "actions": actions}
-
-# ------------------------------
-# Static file serving
-# ------------------------------
-app.mount("/static", StaticFiles(directory=BASE_DIR), name="static")
-
-# ------------------------------
-# Include auth router
-# ------------------------------
-app.include_router(auth.router)
+    return [{"change": r[0], "severity": r[1], "time": r[2]} for r in rows]

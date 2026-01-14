@@ -1,15 +1,19 @@
 # db.py
-import os
 from sqlalchemy import create_engine
-from sqlalchemy.orm import declarative_base, sessionmaker
+from sqlalchemy.orm import sessionmaker, declarative_base
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DB_PATH = os.path.join(BASE_DIR, "webscan.db")
-DB_URL = f"sqlite:///{DB_PATH}"
+# SQLite database file
+SQLALCHEMY_DATABASE_URL = "sqlite:///./webscan.db"
 
-engine = create_engine(DB_URL, connect_args={"check_same_thread": False})
+# Create engine
+engine = create_engine(
+    SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
+)
+
+# Session factory
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
+# Base class for models
 Base = declarative_base()
 
 # Dependency for FastAPI

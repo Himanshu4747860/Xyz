@@ -1,4 +1,4 @@
-from models import CheckResult
+from ..models import CheckResult
 
 def run() -> list[CheckResult]:
     results = []

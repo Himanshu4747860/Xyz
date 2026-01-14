@@ -1,5 +1,5 @@
 import hashlib
-from models import CheckResult
+from ..models import CheckResult
 
 def run(parsed: dict) -> list[CheckResult]:
     results = []

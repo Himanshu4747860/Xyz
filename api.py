@@ -4,9 +4,11 @@ from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from datetime import datetime
 import sqlite3, os
-
 import auth
 import db_helpers
+from fastapi import FastAPI
+from db_helpers import collect_domain_data   # <-- add this line
+
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 app = FastAPI()
@@ -157,17 +159,19 @@ def timeline(domain: str):
     return [{"change": c, "severity": s, "time": t} for c, s, t in rows]
 
 @app.get("/actions/{domain}")
-def actions(domain: str):
-    conn = get_conn()
-    cur = conn.cursor()
-    cur.execute("""
-        SELECT issue, risk, action, status
-        FROM actions
-        WHERE domain=?
-    """, (domain,))
-    rows = cur.fetchall()
-    conn.close()
-    return [{"issue": i, "risk": r, "action": a, "status": st} for i, r, a, st in rows]
+def get_actions(domain: str):
+    risks = collect_domain_data(domain)["findings"]
+    actions = []
+    for r in risks:
+        if r["parameter"].startswith("Ports:Open"):
+            actions.append("Restrict SSH (22) access to trusted IPs; configure firewall.")
+        elif r["parameter"].startswith("SSL:ExpiryDays"):
+            actions.append("Renew SSL certificate before expiry.")
+        elif r["parameter"].startswith("Headers:CSP"):
+            actions.append("Review CSP policy for completeness.")
+        elif r["parameter"].startswith("Server:Fingerprint"):
+            actions.append("Keep server patched; consider hiding fingerprint headers.")
+    return {"domain": domain, "actions": actions}
 
 # ------------------------------
 # Static file serving

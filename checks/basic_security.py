@@ -1,5 +1,5 @@
 from bs4 import BeautifulSoup
-from ..models import CheckResult
+from models import CheckResult
 
 def run(url: str, html: str | None) -> list[CheckResult]:
     results = []

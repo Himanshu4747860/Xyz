@@ -1,4 +1,4 @@
-from ..models import CheckResult
+from models import CheckResult
 
 def run(sec_headers: dict) -> list[CheckResult]:
     results = []
